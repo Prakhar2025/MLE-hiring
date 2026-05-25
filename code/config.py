@@ -28,12 +28,12 @@ DOMAIN_DIRS = {
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 LLM_MODEL    = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 LLM_TEMPERATURE = 0.0      # must be 0 for determinism
-LLM_MAX_TOKENS  = 1024
+LLM_MAX_TOKENS  = 700      # keep lean — 89 tickets × ~6s = ~9min. Target <2s each
 
 # ---------------------------------------------------------------------------
 # Retrieval Settings
 # ---------------------------------------------------------------------------
-BM25_TOP_K = 5             # number of corpus docs to retrieve per ticket
+BM25_TOP_K = 3             # top-3 docs keeps prompts lean and fast
 MIN_BM25_SCORE = 0.0       # drop documents with score below this threshold
 
 # ---------------------------------------------------------------------------
@@ -53,6 +53,8 @@ KNOWN_COMPANIES = {"DevPlatform", "Claude", "Visa", "None"}
 # ---------------------------------------------------------------------------
 INJECTION_KEYWORDS = [
     "ignore previous instructions",
+    "ignore all previous instructions",
+    "ignore all previous",
     "disregard all previous",
     "disregard your instructions",
     "forget all instructions",
@@ -100,7 +102,7 @@ INJECTION_PATTERNS_STRUCTURAL = [
     r"<prompt>",
     r"\[system\s*override\]",
     r"\[system\s*message\]",
-    r"^=",           # Excel formula injection
+    r"(?:^|\n|\[.*?\]:\s*)=",           # Excel formula injection (handles [user]: prefix)
 ]
 
 # ---------------------------------------------------------------------------

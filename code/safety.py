@@ -130,7 +130,7 @@ def redact_pii_from_response(response: str) -> str:
 
 def detect_language(text: str) -> str:
     """Returns ISO 639-1 code. Falls back to 'en'."""
-    if not text or len(text.strip()) < 10:
+    if not text or len(text.strip()) < 20:
         return "en"
     clean = sanitize_text(text)[:500]
     if _LANGDETECT_OK:
