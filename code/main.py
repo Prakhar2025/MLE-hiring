@@ -34,7 +34,7 @@ from agent import SupportAgent
 from schemas import CSV_COLUMNS
 from config import INPUT_CSV, OUTPUT_CSV
 
-MAX_WORKERS = 8   # parallel LLM calls — safe for Groq rate limits
+MAX_WORKERS = 4   # 4 workers is safe for Groq free tier; 8 was triggering rate limits
 
 
 def parse_args():

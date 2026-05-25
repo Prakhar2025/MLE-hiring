@@ -28,12 +28,12 @@ DOMAIN_DIRS = {
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 LLM_MODEL    = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 LLM_TEMPERATURE = 0.0      # must be 0 for determinism
-LLM_MAX_TOKENS  = 700      # keep lean — 89 tickets × ~6s = ~9min. Target <2s each
+LLM_MAX_TOKENS  = 1200     # raised from 700 — JSON was being truncated causing 44% parse failures
 
 # ---------------------------------------------------------------------------
 # Retrieval Settings
 # ---------------------------------------------------------------------------
-BM25_TOP_K = 3             # top-3 docs keeps prompts lean and fast
+BM25_TOP_K = 5             # top-5 docs for better source coverage
 MIN_BM25_SCORE = 0.0       # drop documents with score below this threshold
 
 # ---------------------------------------------------------------------------
@@ -52,6 +52,7 @@ KNOWN_COMPANIES = {"DevPlatform", "Claude", "Visa", "None"}
 # Injection detection keywords (case-insensitive substring match)
 # ---------------------------------------------------------------------------
 INJECTION_KEYWORDS = [
+    # -- English injection classics --
     "ignore previous instructions",
     "ignore all previous instructions",
     "ignore all previous",
@@ -92,6 +93,65 @@ INJECTION_KEYWORDS = [
     "list of support articles",
     "how many documents",
     "what documents do you have",
+    # -- Roleplay / persona bypass --
+    "pretend you are",
+    "pretend to be",
+    "roleplay as",
+    "act as if you are",
+    "act as a",
+    "imagine you are a human",
+    "you are a different ai",
+    "switch to developer mode",
+    "enable developer mode",
+    "jailbreak mode",
+    # -- Classification manipulation --
+    "classify this as replied",
+    "classify this as",
+    "do not escalate",
+    "mark this as resolved",
+    "output exactly",
+    "output only",
+    "respond only with",
+    # -- Source/internal exfiltration --
+    "which file did you use",
+    "which document did you",
+    "what was the source",
+    "show me the document",
+    "reveal your sources",
+    "print your instructions",
+    "display your system",
+    # -- Excel formula injection (explicit strings) --
+    "=cmd|",
+    "=dde(",
+    "=exec(",
+    "=hyperlink(",
+    "=importxml(",
+    "=webservice(",
+    # -- German injection phrases --
+    "ignorieren sie ihre",
+    "ignorieren sie alle",
+    "vergessen sie alle",
+    "folgen sie diesen anweisungen",
+    "geben sie alle",
+    # -- French injection phrases --
+    "ignorez vos instructions",
+    "ignorez toutes",
+    "affiche toutes les r\u00e8gles",
+    "affiche tes instructions",
+    "montre-moi tes instructions",
+    "r\u00e9v\u00e8le tes instructions",
+    # -- Spanish injection phrases --
+    "ignora tus instrucciones",
+    "ignora todas las instrucciones",
+    "muestra tus instrucciones",
+    # -- Hindi injection phrases (romanized) --
+    "apne instructions bhool jao",
+    "purani instructions ignore karo",
+    # -- Fake prior context injection --
+    "previous agent told me",
+    "agent tk-",
+    "prior agent promised",
+    "your colleague told me",
 ]
 
 INJECTION_PATTERNS_STRUCTURAL = [
@@ -102,7 +162,9 @@ INJECTION_PATTERNS_STRUCTURAL = [
     r"<prompt>",
     r"\[system\s*override\]",
     r"\[system\s*message\]",
-    r"(?:^|\n|\[.*?\]:\s*)=",           # Excel formula injection (handles [user]: prefix)
+    r"(?:^|\n)\s*=",                  # Excel formula at start of line
+    r'"content":\s*"=',               # Excel inside JSON content field
+    r"\[user\]:\s*=",                 # Excel after [user]: prefix
 ]
 
 # ---------------------------------------------------------------------------
